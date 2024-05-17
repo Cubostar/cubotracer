@@ -7,7 +7,6 @@ TODOs:
 - [ ] Dielectrics
 - [ ] Optimize computation of object surface normals
 - [ ] Smooth shading
-- [ ] 
 
 Completed Tasks:
 - [X] Antialiasing
