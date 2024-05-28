@@ -1,8 +1,8 @@
-use na::{Point3, Vector3};
+use nalgebra::{Point3, Vector3};
 use crate::camera::Camera;
 use crate::objects::Object;
 use crate::ppmhandler::PPMImage;
-use crate::math::Ray;
+use crate::ray::Ray;
 use crate::materials::Material;
 use std::collections::HashMap;
 
@@ -15,7 +15,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn blank_world(background_color: Box<dyn Fn(&Ray) -> Vector3<u8>>) -> Self {
+    pub fn new(background_color: Box<dyn Fn(&Ray) -> Vector3<u8>>) -> Self {
         Self {
             cameras: HashMap::new(),
             objects: HashMap::new(),
@@ -45,7 +45,7 @@ impl World {
                     if counts[*x][*y] == 0 {
                         image.change_pixel(*x, *y, color.try_cast::<u32>().unwrap());
                     } else {
-                        image.change_pixel(*x, *y, (color.try_cast::<u32>().unwrap() + (counts[*x][*y] * image.pixel_at(*x, *y))) / (counts[*x][*y] + 1))
+                        image.change_pixel(*x, *y, (color.try_cast::<u32>().unwrap() + (image.pixel_at(*x, *y) * counts[*x][*y])) / (counts[*x][*y] + 1));
                     }
                     counts[*x][*y] += 1;
                 }
@@ -67,7 +67,7 @@ impl World {
                     Some((pos, obj, mat)) => {
                         let bounce = mat.bounce(ray, obj, pos, &point);
                         (((1.0 - mat.reflectance()) * mat.color().cast::<f32>()) + 
-                        (mat.reflectance() * self.ray_color(&bounce, num_bounces + 1, max_bounces).cast::<f32>()))
+                        ((self.ray_color(&bounce, num_bounces + 1, max_bounces).cast::<f32>() * mat.reflectance())))
                         .try_cast::<u8>().unwrap()
                     },
                     None => panic!("Object key not found while computing ray color"),

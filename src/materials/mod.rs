@@ -1,6 +1,14 @@
-use crate::math::{Ray, random_unit_vector};
+use nalgebra::{Point3, Vector3}; 
+use rand::{Rng, thread_rng};
+use crate::ray::Ray;
 use crate::objects::Object;
-use na::{Point3, Vector3}; 
+
+pub mod opaque;
+use opaque::Opaque;
+pub mod diffuse;
+use diffuse::Diffuse;
+pub mod specular;
+use specular::Specular;
 
 pub trait Material {
     fn color(&self) -> Vector3<u8>;
@@ -10,21 +18,9 @@ pub trait Material {
     fn bounce(&self, ray: &Ray, obj: &Box<dyn Object>, pos: &Point3<f32>, intersection: &Point3<f32>) -> Ray;
 }
 
-pub struct Opaque {
-    color: Vector3<u8>
-}
-
-impl Opaque {
-    pub fn new(color: Vector3<u8>) -> Self {
-        Self {
-            color,
-        }
-    }
-}
-
 impl Material for Opaque {
     fn color(&self) -> Vector3<u8> {
-        self.color
+        self.color()
     }
 
     fn reflectance(&self) -> f32 {
@@ -36,30 +32,13 @@ impl Material for Opaque {
     }
 }
 
-pub struct Diffuse {
-    color: Vector3<u8>,
-    reflectance: f32,
-}
-
-impl Diffuse {
-    pub fn new(color: Vector3<u8>, reflectance: f32) -> Self {
-        if reflectance <= 0.0 || 1.0 <= reflectance {
-            panic!("Reflectance must be a number between 0 and 1, given reflectance was {}", reflectance)
-        }
-        Self {
-            color,
-            reflectance,
-        }
-    }
-}
-
 impl Material for Diffuse {
     fn color(&self) -> Vector3<u8> {
-        self.color
+        self.color()
     }
 
     fn reflectance(&self) -> f32 {
-        self.reflectance
+        self.reflectance()
     }
 
     fn bounce(&self, _ray: &Ray, obj: &Box<dyn Object>, pos: &Point3<f32>, intersection: &Point3<f32>) -> Ray {
@@ -68,34 +47,26 @@ impl Material for Diffuse {
     }
 }
 
-pub struct Metal {
-    color: Vector3<u8>,
-    reflectance: f32,
-}
-
-impl Metal {
-    pub fn new(color: Vector3<u8>, reflectance: f32) -> Self {
-        if reflectance <= 0.0 || 1.0 <= reflectance {
-            panic!("Reflectance must be a number between 0 and 1, given reflectance was {}", reflectance)
-        }
-        Self {
-            color,
-            reflectance,
-        }
-    }
-}
-
-impl Material for Metal {
+impl Material for Specular {
     fn color(&self) -> Vector3<u8> {
-        self.color
+        self.color()
     }
 
     fn reflectance(&self) -> f32 {
-        self.reflectance
+        self.reflectance()
     }
 
     fn bounce(&self, ray: &Ray, obj: &Box<dyn Object>, pos: &Point3<f32>, intersection: &Point3<f32>) -> Ray {
         let n = obj.surface_normal(pos, intersection);
         Ray::new(*intersection, ray.dir() - (2.0 * n.dot(&ray.dir()) * n))
     }
+}
+
+fn random_unit_vector() -> Vector3<f32> {
+    let mut rng = thread_rng();
+    let mut result = Vector3::new(rng.gen_range(-1.0..=1.0), rng.gen_range(-1.0..=1.0), rng.gen_range(-1.0..=1.0));
+    while result.magnitude() > 1.0 {
+        result = Vector3::new(rng.gen_range(-1.0..=1.0), rng.gen_range(-1.0..=1.0), rng.gen_range(-1.0..=1.0));
+    }
+    result.normalize()
 }

@@ -1,7 +1,7 @@
-use rand::Rng;
+use nalgebra::{Vector3, Point3, UnitQuaternion};
+use rand::{Rng, thread_rng};
 use rand::distributions::Uniform;
-use crate::math::{Ray, random_vector_on_unit_disk};
-use na::{Vector3, Point3, UnitQuaternion};
+use crate::ray::Ray;
 
 pub struct Camera {
     up: Vector3<f32>,
@@ -114,4 +114,13 @@ impl Camera {
             self.up = self.right.cross(&self.dir);
         }
     }
+}
+
+fn random_vector_on_unit_disk(up: &Vector3<f32>, right: &Vector3<f32>) -> Vector3<f32> {
+    let mut rng = thread_rng();
+    let mut result: (f32, f32) = (rng.gen_range(-1.0..=1.0), rng.gen_range(-1.0..=1.0));
+    while result.0.powi(2) + result.1.powi(2) > 1.0 {
+        result = (rng.gen_range(-1.0..=1.0), rng.gen_range(-1.0..=1.0));
+    }
+    (result.0 * up) + (result.1 * right)
 }

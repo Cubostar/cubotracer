@@ -1,19 +1,10 @@
-extern crate nalgebra as na;
-
-mod ppmhandler;
-mod objects;
-mod materials;
-mod camera;
-mod world;
-mod math;
-
-use ppmhandler::{PPMHandler, PPMType};
-use objects::Mesh;
-use materials::Diffuse;
-use camera::Camera;
-use world::World;
-use math::Ray;
-use na::{Point3, Vector3};
+use nalgebra::{Point3, Vector3};
+use cubotracer::ppmhandler::{PPMHandler, PPMType};
+use cubotracer::objects::mesh::Mesh;
+use cubotracer::materials::diffuse::Diffuse;
+use cubotracer::camera::Camera;
+use cubotracer::world::World;
+use cubotracer::ray::Ray;
 
 fn background_color(ray: &Ray) -> Vector3<u8> {
     let a: f32 = 0.5 * (ray.dir().y + 1.0);
@@ -22,11 +13,11 @@ fn background_color(ray: &Ray) -> Vector3<u8> {
 }
 
 fn main() {
-    let mut world = World::blank_world(Box::new(background_color));
+    let mut world = World::new(Box::new(background_color));
     let max_bounces = 5;
     let rays_per_pixel = 5;
 
-    let bunny = Mesh::from_obj("bunny.obj".to_string()).expect("MeshError: Error parsing .obj file");
+    let bunny = Mesh::from_obj("assets/bunny.obj".to_string()).expect("MeshError: Error parsing .obj file");
 
     world.add_camera(
         Camera::new(

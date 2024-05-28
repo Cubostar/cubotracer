@@ -1,6 +1,6 @@
 use std::io::{BufReader, BufWriter, BufRead, Write};
 use std::fs::File;
-use na::Vector3;
+use nalgebra::Vector3;
 
 pub struct PPMImage {
     dim: (usize, usize),
