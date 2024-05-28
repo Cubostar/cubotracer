@@ -1,6 +1,8 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Point3};
 use std::io::{BufReader, BufRead};
 use std::fs::File;
+use crate::objects::Object;
+use crate::ray::Ray;
 
 pub mod triangle;
 use triangle::Triangle;
@@ -10,10 +12,6 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn triangles(&self) -> &Vec<Triangle> {
-        &self.triangles
-    }
-
     pub fn from_obj(path: String) -> std::io::Result<Self> {
         let reader = BufReader::new(File::open(path)?);
         let lines = reader.lines();
@@ -53,3 +51,36 @@ impl Mesh {
     }
 }
 
+impl Object for Mesh {
+    fn surface_normal(&self, pos: &Point3<f32>, pt: &Point3<f32>) -> Vector3<f32> {
+        let mut closest = (self.triangles.get(0).expect("MeshError: No triangles in mesh"), self.triangles.get(0).expect("MeshError: No triangles in mesh").distance_to_point(pos, pt));
+        for tri in self.triangles.iter() {
+            let tri_distance = tri.distance_to_point(pos, pt);
+            if tri_distance < closest.1 {
+                closest = (tri, tri_distance);
+            }
+        }
+        closest.0.surface_normal(pos, pt)
+    }
+
+    fn intersection_point(&self, pos: &Point3<f32>, ray: &Ray, tolerance: f32) -> Option<Point3<f32>> {
+        let mut closest: Option<Point3<f32>> = None;
+        let intersections: Vec<Option<Point3<f32>>> = self.triangles.iter().map(|tri| tri.intersection_point(pos, ray, tolerance)).collect();
+        for intersection in intersections.iter() {
+            match intersection {
+                Some(point) => {
+                    match closest {
+                        Some(prev) => {
+                            if (ray.pos() - point).magnitude() < (ray.pos() - prev).magnitude() {
+                                closest = Some(*point);
+                            }
+                        }
+                        None => closest = Some(*point),
+                    }
+                },
+                None => { },
+            }
+        }
+        closest
+    }
+}
