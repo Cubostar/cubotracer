@@ -39,5 +39,5 @@ fn main() {
     println!("Render finished");
 
     let handler = PPMHandler();
-    handler.write(&result, PPMType::P6, "output".to_string()).expect("Error writing rendered image");
+    handler.write(&result, PPMType::P6, "spheres".to_string()).expect("Error writing rendered image");
 }
