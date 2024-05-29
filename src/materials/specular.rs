@@ -1,4 +1,7 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Point3};
+use crate::materials::Material;
+use crate::objects::Object;
+use crate::ray::Ray;
 
 pub struct Specular {
     color: Vector3<u8>,
@@ -15,13 +18,19 @@ impl Specular {
             reflectance,
         }
     }
+}
 
-    pub fn color(&self) -> Vector3<u8> {
+impl Material for Specular {
+    fn color(&self) -> Vector3<u8> {
         self.color
     }
 
-    pub fn reflectance(&self) -> f32 {
+    fn reflectance(&self) -> f32 {
         self.reflectance
     }
-}
 
+    fn bounce(&self, ray: &Ray, obj: &Box<dyn Object>, pos: &Point3<f32>, intersection: &Point3<f32>) -> Ray {
+        let n = obj.surface_normal(pos, intersection);
+        Ray::new(*intersection, ray.dir() - (2.0 * n.dot(&ray.dir()) * n))
+    }
+}
