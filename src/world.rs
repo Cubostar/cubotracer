@@ -9,10 +9,10 @@ use std::collections::HashMap;
 const TOL: f32 = 0.001; // TODO: maybe abstract or something?
 
 #[kernel]
-pub unsafe fn cuda_ray_color() {
-    thread::index_1d()
+pub unsafe fn cuda_ray_color(ray: &[((f32, f32), (f32, f32))], num_bounces: u8, max_bounces: u8, colors: *mut [(u8, u8, u8)]) {
+    let id = thread::index_1d()
     if num_bounces >= max_bounces {
-        return (self.background_color)(ray)
+        colors[id] += (0, 0, 0);
     }
     let intersection = self.intersection(ray);
     match intersection {
@@ -21,14 +21,12 @@ pub unsafe fn cuda_ray_color() {
             match entry {
                 Some((pos, obj, mat)) => {
                     let bounce = mat.bounce(ray, obj, pos, &point);
-                    (((1.0 - mat.reflectance()) * mat.color().cast::<f32>()) + 
-                    ((self.ray_color(&bounce, num_bounces + 1, max_bounces).cast::<f32>() * mat.reflectance())))
-                    .try_cast::<u8>().unwrap()
+                    colors[id] += ((1.0 - mat.reflectance()) * mat.color().cast::<f32>()) 
                 },
                 None => panic!("Object key not found while computing ray color"),
             }
         },
-        None => (self.background_color)(ray),
+        None => colors[id] += (0, 0, 0),
     }
 }
 
