@@ -15,3 +15,19 @@ Completed Tasks:
 - [X] Positionable Camera
 - [X] Defocus Blur
 - [X] OBJ support
+
+For EECE5640:
+
+To run examples, use the following command(s):
+
+cargo run --example spheres
+cargo run --example stanford-bunny
+
+Note that for the bunny, the command must be run in the examples folder.
+
+To run examples with perf, run the following command(s):
+
+perf stat -d cargo run --profile cuboperf --example spheres
+perf stat -d cargo run --profile cuboperf --example stanford-bunny
+
+Again, note that for the bunny, the command must be run in the examples folder.

@@ -8,6 +8,30 @@ use std::collections::HashMap;
 
 const TOL: f32 = 0.001; // TODO: maybe abstract or something?
 
+#[kernel]
+pub unsafe fn cuda_ray_color() {
+    thread::index_1d()
+    if num_bounces >= max_bounces {
+        return (self.background_color)(ray)
+    }
+    let intersection = self.intersection(ray);
+    match intersection {
+        Some((point, key)) => {
+            let entry = self.objects.get(&key);
+            match entry {
+                Some((pos, obj, mat)) => {
+                    let bounce = mat.bounce(ray, obj, pos, &point);
+                    (((1.0 - mat.reflectance()) * mat.color().cast::<f32>()) + 
+                    ((self.ray_color(&bounce, num_bounces + 1, max_bounces).cast::<f32>() * mat.reflectance())))
+                    .try_cast::<u8>().unwrap()
+                },
+                None => panic!("Object key not found while computing ray color"),
+            }
+        },
+        None => (self.background_color)(ray),
+    }
+}
+
 pub struct World {
     cameras: HashMap<String, (Point3<f32>, Camera)>,
     objects: HashMap<String, (Point3<f32>, Box<dyn Object>, Box<dyn Material>)>,

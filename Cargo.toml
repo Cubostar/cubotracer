@@ -9,3 +9,13 @@ edition = "2021"
 nalgebra = "0.32.5"
 rand = "0.8.5"
 tobj = "4.0.2"
+cuda_std = "12.0"
+
+[profile.cuboperf]
+inherits = "release"
+incremental = true
+debug = true
+lto = "fat"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
